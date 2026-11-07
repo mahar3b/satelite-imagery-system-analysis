@@ -1,7 +1,7 @@
 # PROJECT LOG: Attention-Guided Cross-Sensor Land Cover Classification
 
 Handoff/status document. Written so any collaborator or AI assistant can resume
-without prior chat history. Last updated: 2026-10-19.
+without prior chat history. Last updated: 2026-11-07.
 
 - Course: AI2002 Artificial Intelligence, FAST-NUCES Lahore, Semester 5
 - Group: F26-06 | Track A (Research & Development) | Instructor: Hajra Waheed | TA: Saad Bin Ather
@@ -26,7 +26,8 @@ lambda in {0, 0.1, 0.5, 1.0, 2.0}; lambda=0 is the isolation control.
 |---|---|
 | Phase 1: proposal (problem, dataset, papers, scope), PDF named F26-06.pdf | Done |
 | Phase 2: Data Acquisition & Setup (Track A) | Done (cached s2_train.npz, s2_test.npz, baseline drop confirmed) |
-| Phase 3: Model Building & Initial Training (Track A) | Done (ViT attention hook, CACR adaptation, lambda sweep complete, F26-06.docx/pdf/ipynb ready) |
+| Phase 3: Model Building & Initial Training (Track A) | Done (ViT attention hook, CACR adaptation, lambda sweep complete) |
+| Phase 4: Model Evaluation, Error Analysis & Fairness Audit (Track A) | Done (Multi-metric benchmark, per-class breakdown, confusion matrix analysis, bias/fairness audit, F26-06 phase 4.docx) |
 
 Our informal Colab work: (A) NDVI/NDWI proxy check, (B) baseline cross-sensor
 experiment, (C) data caching/setup. All three are complete. Next is the
@@ -158,13 +159,48 @@ Executed on Google Colab (NVIDIA Tesla T4 GPU, 16 GB VRAM) using Automatic Mixed
 - Report: `F26-06.docx` / `report.docx` / `F26-06.pdf` (with embedded Figure 1 sweep curve and Figure 2 qualitative heatmaps).
 - Figures: `figures/sweep_curve.png`, `figures/qualitative_attention_maps.png`.
 
-## 8. Open design decisions (Phase 3, not yet made)
+
+## 8. Phase 4: Comprehensive Model Evaluation, Error Analysis & Fairness Audit
+Executed on Google Colab (NVIDIA Tesla T4 GPU, 16 GB VRAM) using multi-metric evaluation across Sentinel-2 (2,000 in-domain test) and Landsat EuroSAT-L (5,400 out-of-domain test).
+
+### Benchmark Comparison (Table 1):
+| Model / Approach | S2 Acc (%) | S2 Macro F1 (%) | Landsat Acc (%) | Landsat Macro F1 (%) | Acc Drop Δ (%) | S2 AMIL |
+|---|---|---|---|---|---|---|
+| **ResNet-50 (Convolutional Baseline)** | 91.56% | 89.41% | 19.76% | 17.82% | 71.80% | N/A |
+| **ViT-B/16 Baseline (λ = 0.0)** | 97.05% | 96.98% | 50.43% | 49.35% | 46.62% | 0.5991 |
+| **ViT-B/16 Regularized (λ = 0.1, Optimal)** | 97.00% | 96.92% | 50.19% | 49.62% | 46.81% | 0.6835 |
+| **ViT-B/16 Moderate Reg (λ = 0.5)** | 96.85% | 96.79% | 48.80% | 47.92% | 48.05% | 0.8724 |
+| **ViT-B/16 Over-Regularized (λ = 1.0)** | 96.60% | 96.51% | 46.54% | 45.30% | 50.06% | 0.9026 |
+| **ViT-B/16 Extreme Reg (λ = 2.0)** | 96.35% | 96.22% | 46.33% | 44.91% | 50.02% | 0.9222 |
+
+### Primary Confusion Clusters (Error Analysis):
+1. **Intra-Vegetation Cluster:** Pasture (F1 ~34.4%–35.2%) confused with HerbaceousVegetation (38% of errors) and AnnualCrop (24% of errors) due to 30 m GSD pixel blending averaging grass and soil.
+2. **Linear Feature Spatial Blur:** River (F1 ~39.1%–40.1%) confused with Highway and SeaLake. Thin channels (<20–30 m) diluted across 30 m pixels.
+3. **Built-up Impervious Cluster:** Highway (F1 ~40.2%–41.5%) confused with Residential (26% of errors) due to identical low-NDVI asphalt/shingle spectral signatures without 10 m edge sharpness.
+4. **Resilient Classes:** Forest (F1 ~83.5%–84.2%) and SeaLake (F1 ~77.4%–77.8%) preserve strong performance across both sensors due to broad areal coverage.
+
+### Bias & Fairness Audit Findings:
+- **Class Imbalance Bias:** Landsat EuroSAT-L support varies from 396 (Pasture) to 609 (SeaLake). Overall accuracy overweights populous easy classes, yielding an optimistic +1.08% gap over Macro-F1. Macro-F1 protects minority categories.
+- **Sensor Resolution Bias (GSD):** 9x spatial data density reduction (64x64 at 10 m vs 22x22 at 30 m) disproportionately penalizes narrow linear and boundary-dependent classes (Highway, River).
+- **Proxy Spectral Bias:** NDVI/NDWI masks are physically immaculate for vegetation/water but act as coarse heuristics for heterogeneous urban settlement textures (Residential, Industrial).
+
+### Key Research Questions Conclusively Answered:
+- **RQ1:** ViT-B/16 retains +30.67% higher accuracy and +31.53% higher Macro-F1 than ResNet-50 under cross-sensor transfer, proving global self-attention adapts to sensor artifact shifts far better than rigid local convolutions.
+- **RQ2:** Attention regularization anchors self-attention into physical proxy regions (AMIL monotonically rises 0.5991 → 0.9222), but uncovers the "Context-Starvation" trade-off: excessive regularization (λ ≥ 0.5) collapses attention into single tokens, stripping peripheral context and lowering target transfer. Mild regularization (λ = 0.1) is Pareto-optimal.
+- **RQ3:** Pasture, River, and Highway remain the hardest classes to classify due to mixed-pixel blur at 30 m GSD.
+
+### Phase 4 Deliverables:
+- Notebook: `notebooks/satelite_system.ipynb` (42 cells, fully executable with Phase 4 evaluation engine).
+- Report: `F26-06 phase 4.docx` / `F26-06.docx` / `F26-06.pdf`.
+- Visualizations: `figures/sweep_curve.png`, `figures/qualitative_attention_maps.png`.
+
+## 9. Open design decisions (Phase 3, not yet made)
 - Class-to-mask mapping: which index defines the "relevant region" per class (NDVI high for vegetation classes, NDWI high for SeaLake/River, undefined/weak for built-up). Options: per-class mapping, or a combined mask.
 - Attention source: attention rollout (CACR) vs last-layer attention; patch grid 14x14 at 224 input; masks need pooling to the patch grid.
 - Training regime: CACR used two stages (pretrain with penalty, fine-tune without). Here likely single-stage fine-tuning with penalty on Sentinel-2. The penalty needs gradients through attention, so the backbone cannot stay frozen as in the baselines (heavier compute, likely multiple Colab sessions).
 - Metrics: cross-sensor accuracy (and AUROC if feasible), IoU and AMIL vs NDVI/NDWI masks, per-class failure analysis, attention-map figures (baseline vs regularized).
 
-## 9. How to resume (Colab)
+## 10. How to resume (Colab)
 Do not "Run all": it retrains models. Fresh-runtime order:
 1. `pip install datasets pandas matplotlib scipy numpy rasterio`
 2. Mount Drive; `SAVE = "/content/drive/MyDrive/satellite_project"`
@@ -174,14 +210,14 @@ Do not "Run all": it retrains models. Fresh-runtime order:
 
 Free-tier limits: ~12 h sessions, idle disconnects, informal GPU quota. Fallback: Kaggle notebooks (~30 GPU-h/week). Save checkpoints to Drive every epoch.
 
-## 10. Reference papers
+## 11. Reference papers
 - Ather, Waheed, Abbas, Khan. Clinical Attention Consistency Regularization for Cross-domain Generalization in Chest X-Ray Diagnosis (methodological template, TA's paper).
 - Helber et al. 2019, EuroSAT, arXiv:1709.00029
 - Landsat-Bench, arXiv:2506.08780
 - Dosovitskiy et al. 2021, ViT, arXiv:2010.11929
 - He et al. 2016, ResNet, arXiv:1512.03385
 
-## 11. Notes for AI assistants picking this up
+## 12. Notes for AI assistants picking this up
 - Verified (ran in Colab): sections 3 to 5, including every number listed.
 - Not yet verified: split alignment, Industrial pixel-level behavior, anything in section 7.
 - User prefers dense bullet answers, minimal code comments, files over inline text, and flags of risk before building on a step.
