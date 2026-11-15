@@ -70,11 +70,39 @@ export const results = [
 ]
 
 export const classF1 = [
-  { name: 'Forest', f1: 84.2, tone: 'easy' },
-  { name: 'Sea / lake', f1: 77.8, tone: 'easy' },
-  { name: 'Highway', f1: 41.5, tone: 'hard' },
-  { name: 'River', f1: 40.1, tone: 'hard' },
-  { name: 'Pasture', f1: 35.2, tone: 'hard' },
+  { name: 'Annual crop', support: 596, baseline: 68.39, regularized: 63.73 },
+  { name: 'Forest', support: 608, baseline: 16.0, regularized: 17.99 },
+  { name: 'Herbaceous vegetation', support: 573, baseline: 41.12, regularized: 44.99 },
+  { name: 'Highway', support: 496, baseline: 9.94, regularized: 21.95 },
+  { name: 'Industrial', support: 501, baseline: 48.96, regularized: 48.13 },
+  { name: 'Pasture', support: 396, baseline: 49.33, regularized: 50.51 },
+  { name: 'Permanent crop', support: 538, baseline: 33.57, regularized: 36.54 },
+  { name: 'Residential', support: 554, baseline: 31.10, regularized: 30.10 },
+  { name: 'River', support: 529, baseline: 67.46, regularized: 69.40 },
+  { name: 'Sea / lake', support: 609, baseline: 47.53, regularized: 57.62 },
+]
+
+export const confusions = [
+  {
+    pair: 'Pasture → Herbaceous vegetation',
+    share: '38% of pasture errors',
+    cause: 'Mixed grass, bare soil, and weeds average together at 30 m.',
+  },
+  {
+    pair: 'Pasture → Annual crop',
+    share: '24% of pasture errors',
+    cause: 'Vegetated field textures overlap when narrow boundaries are blurred.',
+  },
+  {
+    pair: 'Highway → Residential',
+    share: '26% of highway errors',
+    cause: 'Asphalt and roof surfaces share low-NDVI, built-up signatures.',
+  },
+  {
+    pair: 'River ↔ neighboring classes',
+    share: 'Boundary mixing',
+    cause: 'Channels narrower than a 30 m pixel blend with banks and adjacent land.',
+  },
 ]
 
 export const phases = [
