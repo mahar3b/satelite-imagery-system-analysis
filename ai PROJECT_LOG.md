@@ -237,3 +237,5 @@ Free-tier limits: ~12 h sessions, idle disconnects, informal GPU quota. Fallback
 - Not yet verified: split alignment, Industrial pixel-level behavior, anything in section 7.
 - User prefers dense bullet answers, minimal code comments, files over inline text, and flags of risk before building on a step.
 - User is a 5th-semester student: explain ML concepts simply, standard PyTorch is fine.
+
+top off done
