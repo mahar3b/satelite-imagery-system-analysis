@@ -1,7 +1,7 @@
 # PROJECT LOG: Attention-Guided Cross-Sensor Land Cover Classification
 
 Handoff/status document. Written so any collaborator or AI assistant can resume
-without prior chat history. Last updated: 2026-11-07.
+without prior chat history. Last updated: 2026-11-15.
 
 - Course: AI2002 Artificial Intelligence, FAST-NUCES Lahore, Semester 5
 - Group: F26-06 | Track A (Research & Development) | Instructor: Hajra Waheed | TA: Saad Bin Ather
@@ -27,7 +27,8 @@ lambda in {0, 0.1, 0.5, 1.0, 2.0}; lambda=0 is the isolation control.
 | Phase 1: proposal (problem, dataset, papers, scope), PDF named F26-06.pdf | Done |
 | Phase 2: Data Acquisition & Setup (Track A) | Done (cached s2_train.npz, s2_test.npz, baseline drop confirmed) |
 | Phase 3: Model Building & Initial Training (Track A) | Done (ViT attention hook, CACR adaptation, lambda sweep complete) |
-| Phase 4: Model Evaluation, Error Analysis & Fairness Audit (Track A) | Done (Multi-metric benchmark, per-class breakdown, confusion matrix analysis, bias/fairness audit, F26-06 phase 4.docx) |
+| Phase 4: Model Evaluation, Error Analysis & Fairness Audit (Track A) | Done (Multi-metric benchmark, per-class breakdown, confusion matrix analysis, bias/fairness audit) |
+| Phase 5: Final Technical Paper, Reproducibility & Defense Guide (Track A) | Done (IEEE-style report F26-06.docx/pdf, F26-06.ipynb, PROJECT_EXPLANATION_GUIDE.md/docx) |
 
 Our informal Colab work: (A) NDVI/NDWI proxy check, (B) baseline cross-sensor
 experiment, (C) data caching/setup. All three are complete. Next is the
@@ -194,13 +195,27 @@ Executed on Google Colab (NVIDIA Tesla T4 GPU, 16 GB VRAM) using multi-metric ev
 - Report: `F26-06 phase 4.docx` / `F26-06.docx` / `F26-06.pdf`.
 - Visualizations: `figures/sweep_curve.png`, `figures/qualitative_attention_maps.png`.
 
-## 9. Open design decisions (Phase 3, not yet made)
+
+## 9. Phase 5: Final Technical Paper, Reproducibility & Viva Defense
+Completed the final synthesis deliverable for AI2002 course submission:
+
+### Final Deliverables Package:
+1. **Academic Paper Report (`F26-06.docx` / `F26-06 phase 5.docx`):**
+   - Modeled strictly after the CACR paper (Ather et al., 2024, FAST-NUCES).
+   - Standard 2-4 page academic structure: Abstract, Intro, Related Work, Datasets & Physical Proxy Supervision, Methodology, Experiments & Lambda Sweep, Error Analysis, Bias & Fairness Audit, Discussion (Generalization-Alignment & Context-Starvation), Conclusion, and References.
+   - Embeds 5 high-resolution figures: Sweep Curve, Confusion Matrices, Misclassification Samples, Attention Heatmaps, and Bias/Fairness Audit Plots.
+2. **Reproducible Code Implementation (`F26-06.ipynb` & `notebooks/satelite_system.ipynb`):**
+   - 42 fully executable cells running end-to-end on Google Colab with NVIDIA Tesla T4 GPU.
+3. **Comprehensive Defense Guide (`PROJECT_EXPLANATION_GUIDE.md` / `PROJECT_EXPLANATION_GUIDE.docx`):**
+   - 30-second elevator pitch, the clinical-to-satellite CACR backstory, plain-English concept glossary (Domain Shift, 10m vs 30m GSD, NDVI/NDWI, AMIL, Context Starvation, Isolation Control), phase-by-phase timeline, high-level code walkthrough, key numbers to memorize, and the Top 12 Viva / Oral Defense Questions with winning answers.
+
+## 10. Open design decisions (Phase 3, not yet made)
 - Class-to-mask mapping: which index defines the "relevant region" per class (NDVI high for vegetation classes, NDWI high for SeaLake/River, undefined/weak for built-up). Options: per-class mapping, or a combined mask.
 - Attention source: attention rollout (CACR) vs last-layer attention; patch grid 14x14 at 224 input; masks need pooling to the patch grid.
 - Training regime: CACR used two stages (pretrain with penalty, fine-tune without). Here likely single-stage fine-tuning with penalty on Sentinel-2. The penalty needs gradients through attention, so the backbone cannot stay frozen as in the baselines (heavier compute, likely multiple Colab sessions).
 - Metrics: cross-sensor accuracy (and AUROC if feasible), IoU and AMIL vs NDVI/NDWI masks, per-class failure analysis, attention-map figures (baseline vs regularized).
 
-## 10. How to resume (Colab)
+## 11. How to resume (Colab)
 Do not "Run all": it retrains models. Fresh-runtime order:
 1. `pip install datasets pandas matplotlib scipy numpy rasterio`
 2. Mount Drive; `SAVE = "/content/drive/MyDrive/satellite_project"`
@@ -210,14 +225,14 @@ Do not "Run all": it retrains models. Fresh-runtime order:
 
 Free-tier limits: ~12 h sessions, idle disconnects, informal GPU quota. Fallback: Kaggle notebooks (~30 GPU-h/week). Save checkpoints to Drive every epoch.
 
-## 11. Reference papers
+## 12. Reference papers
 - Ather, Waheed, Abbas, Khan. Clinical Attention Consistency Regularization for Cross-domain Generalization in Chest X-Ray Diagnosis (methodological template, TA's paper).
 - Helber et al. 2019, EuroSAT, arXiv:1709.00029
 - Landsat-Bench, arXiv:2506.08780
 - Dosovitskiy et al. 2021, ViT, arXiv:2010.11929
 - He et al. 2016, ResNet, arXiv:1512.03385
 
-## 12. Notes for AI assistants picking this up
+## 13. Notes for AI assistants picking this up
 - Verified (ran in Colab): sections 3 to 5, including every number listed.
 - Not yet verified: split alignment, Industrial pixel-level behavior, anything in section 7.
 - User prefers dense bullet answers, minimal code comments, files over inline text, and flags of risk before building on a step.
